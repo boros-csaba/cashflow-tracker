@@ -9,4 +9,5 @@ public class Transaction
     public decimal Amount { get; set; }
     public string Currency { get; set; }
     public string AdditionalInfo { get; set; }
+    public string Source { get; set; }
 }
