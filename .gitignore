@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/CashflowTracker/.vs/CashflowTracker
+/CashflowTracker/bin/Debug/net9.0
+/CashflowTracker/obj
+/data
