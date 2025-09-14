@@ -9,4 +9,5 @@
     public int CurrencyIndex { get; set; }
     public int AdditionalInfoIndex { get; set; }
     public int SourceIndex { get; set; }
+    public string DateFormat { get; set; } = "";
 }
