@@ -3,6 +3,7 @@ using System.Text;
 
 string dataFolder = "../../../../data";
 string[] csvFiles = Directory.GetFiles(dataFolder, "*.csv");
+var allTransactions = new List<Transaction>();
 
 foreach (var file in csvFiles)
 {
@@ -78,8 +79,33 @@ foreach (var file in csvFiles)
             Source = csvOptions == Options.KH ? "kh" : csvOptions == Options.Erste ? "erste" : "wise"
         };
 
+        allTransactions.Add(transaction);
         Console.WriteLine($"ID: {transaction.Id}, Date: {transaction.Date:yyyy-MM-dd}, Type: {transaction.Type}, Recipient: {transaction.Recipient}, Amount: {transaction.Amount} {transaction.Currency}, Source: {transaction.Source}");
     }
 
     Console.WriteLine();
 }
+
+// Sort transactions by date descending
+var sortedTransactions = allTransactions.OrderByDescending(t => t.Date).ToList();
+
+Console.WriteLine($"Total transactions loaded: {sortedTransactions.Count}");
+
+// Export to CSV
+string outputPath = "C:/Users/boros/My Drive/transactions.csv";
+Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+
+using (var writer = new StreamWriter(outputPath, false, Encoding.UTF8))
+{
+    // Write header
+    writer.WriteLine("ID,Date,Type,Recipient,Amount,Currency,Description,Source");
+
+    // Write transactions
+    foreach (var transaction in sortedTransactions)
+    {
+        var csvLine = $"\"{transaction.Id}\",\"{transaction.Date:yyyy-MM-dd}\",\"{transaction.Type}\",\"{transaction.Recipient}\",{transaction.Amount},\"{transaction.Currency}\",\"{transaction.AdditionalInfo}\",\"{transaction.Source}\"";
+        writer.WriteLine(csvLine);
+    }
+}
+
+Console.WriteLine($"Exported {sortedTransactions.Count} transactions to {outputPath}");
