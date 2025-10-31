@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Cryptography;
+using System.Text;
 
 namespace CashflowTracker.Services;
 
@@ -8,6 +9,7 @@ public static class TransactionsCsvProcessor
     {
         string[] csvFiles = Directory.GetFiles(dataFolder, "*.csv");
         var allTransactions = new List<Transaction>();
+        var usedIds = new HashSet<string>();
 
         foreach (var file in csvFiles)
         {
@@ -48,21 +50,32 @@ public static class TransactionsCsvProcessor
                 }
 
                 var id = values[csvOptions.IdIndex].Trim('"');
+                var source = csvOptions == Options.KH ? "kh" : csvOptions == Options.Erste ? "erste" : "wise";
+                var type = csvOptions.TypeIndex >= 0 && csvOptions.TypeIndex < values.Length ? values[csvOptions.TypeIndex].Trim('"') : "";
+                var recipient = csvOptions.RecipientIndex < values.Length ? values[csvOptions.RecipientIndex].Trim('"') : "";
+                var amount = decimal.Parse(amountValue);
+                var currency = csvOptions.CurrencyIndex < values.Length ? values[csvOptions.CurrencyIndex].Trim('"') : "";
+                var additionalInfo = csvOptions.AdditionalInfoIndex < values.Length ? values[csvOptions.AdditionalInfoIndex].Trim('"') : "";
+
                 if (string.IsNullOrEmpty(id))
                 {
-                    id = $"{parsedDate:yyyyMMdd}_{Math.Abs(amountValue.GetHashCode())}_{values[csvOptions.RecipientIndex < values.Length ? csvOptions.RecipientIndex : 0].Trim('"').GetHashCode()}";
+                    id = GenerateUniqueId(parsedDate, amount, recipient, type, additionalInfo, source, usedIds);
+                }
+                else
+                {
+                    id = EnsureUniqueId(id, usedIds);
                 }
 
                 var transaction = new Transaction
                 {
                     Id = id,
                     Date = parsedDate,
-                    Type = csvOptions.TypeIndex >= 0 && csvOptions.TypeIndex < values.Length ? values[csvOptions.TypeIndex].Trim('"') : "",
-                    Recipient = csvOptions.RecipientIndex < values.Length ? values[csvOptions.RecipientIndex].Trim('"') : "",
-                    Amount = decimal.Parse(amountValue),
-                    Currency = csvOptions.CurrencyIndex < values.Length ? values[csvOptions.CurrencyIndex].Trim('"') : "",
-                    AdditionalInfo = csvOptions.AdditionalInfoIndex < values.Length ? values[csvOptions.AdditionalInfoIndex].Trim('"') : "",
-                    Source = csvOptions == Options.KH ? "kh" : csvOptions == Options.Erste ? "erste" : "wise"
+                    Type = type,
+                    Recipient = recipient,
+                    Amount = amount,
+                    Currency = currency,
+                    AdditionalInfo = additionalInfo,
+                    Source = source
                 };
 
                 allTransactions.Add(transaction);
@@ -72,7 +85,53 @@ public static class TransactionsCsvProcessor
             Console.WriteLine();
         }
 
+        AssertNoDuplicateIds(allTransactions);
+
         return allTransactions;
+    }
+
+    private static string GenerateUniqueId(DateTime date, decimal amount, string recipient, string type, string additionalInfo, string source, HashSet<string> usedIds)
+    {
+        var data = $"{date:yyyyMMddHHmmss}|{amount}|{recipient}|{type}|{additionalInfo}|{source}";
+        var hash = ComputeSha256Hash(data);
+        var baseId = hash[..16];
+
+        return EnsureUniqueId(baseId, usedIds);
+    }
+
+    private static string EnsureUniqueId(string baseId, HashSet<string> usedIds)
+    {
+        var id = baseId;
+        var counter = 1;
+
+        while (usedIds.Contains(id))
+        {
+            id = $"{baseId}_{counter}";
+            counter++;
+        }
+
+        usedIds.Add(id);
+        return id;
+    }
+
+    private static string ComputeSha256Hash(string data)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(data));
+        return Convert.ToHexString(bytes).ToLower();
+    }
+
+    private static void AssertNoDuplicateIds(List<Transaction> transactions)
+    {
+        var ids = transactions.Select(t => t.Id).ToList();
+        var duplicates = ids.GroupBy(id => id)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+
+        if (duplicates.Any())
+        {
+            throw new InvalidOperationException($"Duplicate transaction IDs found: {string.Join(", ", duplicates)}");
+        }
     }
 
     private static CsvOptions GetOptions(string headerLine)
