@@ -19,5 +19,12 @@ foreach (var transaction in transactions)
     var date = new DateOnly(transaction.Date.Year, transaction.Date.Month, 1);
     output.AppendLine($"{date:yyyy-MM}\t{transaction.Date:yyyy-MM-dd}\t{transaction.Id}\t{transaction.Amount}\t{transaction.Category}");
 }
+
+
+var desc = transactions
+    .Where(c => c.Amount < 0)
+    //.Where(c => c.Category == null)
+    .OrderByDescending(t => t.Amount);
+
 var x = output.ToString();
 var xx = 0;

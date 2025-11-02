@@ -11,7 +11,8 @@ public static class Options
         RecipientIndex = 6,
         AmountIndex = 7,
         CurrencyIndex = 8,
-        AdditionalInfoIndex = 9
+        AdditionalInfoIndex = 9,
+        IsNegativeAmount = true
     };
 
     public static readonly CsvOptions Erste = new()
@@ -23,7 +24,8 @@ public static class Options
         RecipientIndex = 5,
         AmountIndex = 3,
         CurrencyIndex = 4,
-        AdditionalInfoIndex = 9
+        AdditionalInfoIndex = 9,
+        IsNegativeAmount = true
     };
 
     public static readonly CsvOptions Wise = new()

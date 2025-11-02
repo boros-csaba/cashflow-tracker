@@ -77,6 +77,10 @@ public static class TransactionsCsvProcessor
                     AdditionalInfo = additionalInfo,
                     Source = source
                 };
+                if (csvOptions.IsNegativeAmount)
+                {
+                    transaction.Amount = -amount;
+                }
 
                 allTransactions.Add(transaction);
                 Console.WriteLine($"ID: {transaction.Id}, Date: {transaction.Date:yyyy-MM-dd}, Type: {transaction.Type}, Recipient: {transaction.Recipient}, Amount: {transaction.Amount} {transaction.Currency}, Source: {transaction.Source}");

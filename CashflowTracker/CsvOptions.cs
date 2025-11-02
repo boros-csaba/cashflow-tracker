@@ -10,4 +10,5 @@
     public int AdditionalInfoIndex { get; set; }
     public int SourceIndex { get; set; }
     public string DateFormat { get; set; } = "";
+    public bool IsNegativeAmount { get; set; } = false;
 }
