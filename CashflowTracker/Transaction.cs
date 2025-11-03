@@ -10,7 +10,7 @@ public class Transaction
     public string Currency { get; set; }
     public string AdditionalInfo { get; set; }
     public string Source { get; set; }
-    public string Category { get; set; }
+    public string Category { get; set; } = "-";
 
 
     public static string HazAram = "Ház áram";
