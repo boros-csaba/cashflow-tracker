@@ -1,23 +1,31 @@
 ﻿
+using System.Globalization;
+
 namespace CashflowTracker.Services
 {
     public static class Categorizer
     {
-        public static void Categorize(List<Transaction> transactions)
+        public static List<Transaction> Categorize(List<Transaction> transactions)
         {
-            foreach (var transaction in transactions)
+            foreach (var transaction in transactions!)
             {
-                if (transaction.Recipient.Contains("E.ON", StringComparison.OrdinalIgnoreCase) ||
-                    transaction.Recipient.Contains("DÉMÁSZ", StringComparison.OrdinalIgnoreCase) ||
-                    transaction.Recipient.Contains("NKM", StringComparison.OrdinalIgnoreCase))
+                foreach (var category in Keywords)
                 {
-                    transaction.Category = Transaction.HazAram;
-                }
-                else
-                {
-                    transaction.Category = Transaction.Egyeb;
+                    foreach (var keyword in category.Value)
+                    {
+                        if (CultureInfo.CurrentCulture.CompareInfo.IndexOf(transaction.Recipient, keyword, CompareOptions.IgnoreCase) >= 0)
+                        {
+                            transaction.Category = category.Key;
+                        }
+                    }
                 }
             }
+            return transactions;
         }
+
+        private static Dictionary<string, List<string>> Keywords = new Dictionary<string, List<string>>
+        {
+            { Transaction.Bevasarlas, ["auchan", "tesco", "aldi", "spar"] }
+        };
     }
 }

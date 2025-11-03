@@ -14,6 +14,7 @@ public class Transaction
 
 
     public static string HazAram = "Ház áram";
+    public static string Bevasarlas = "Bevásárlás";
     public static string Egyeb = "Egyéb";
 }
 
