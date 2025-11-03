@@ -4,12 +4,12 @@ public class RollingAverageCalculator
 {
     public static List<RollingAverageDto> CalculateRollingAverageByCategory(
         List<Transaction> transactions,
-        int monthsWindow)
+        int daysWindow)
     {
         var result = new List<RollingAverageDto>();
         var categories = transactions.Select(t => t.Category).Distinct().ToList();
-        var months = transactions
-            .Select(t => new DateOnly(t.Date.Year, t.Date.Month, 1))
+        var days = transactions
+            .Select(t => new DateOnly(t.Date.Year, t.Date.Month, t.Date.Day))
             .Distinct()
             .OrderBy(d => d)
             .ToList();
@@ -18,30 +18,30 @@ public class RollingAverageCalculator
         {
             var categoryTransactions = transactions.Where(t => t.Category == category).ToList();
 
-            for (int i = 0; i < months.Count; i++)
+            for (int i = 0; i < days.Count; i++)
             {
-                var currentMonth = months[i];
-                var startMonth = i >= monthsWindow - 1 ? months[i - monthsWindow + 1] : months[0];
+                var currentDay = days[i];
+                var startMonth = i >= daysWindow - 1 ? days[i - daysWindow + 1] : days[0];
 
                 var relevantTransactions = categoryTransactions
                     .Where(t =>
                     {
-                        var transactionMonth = new DateOnly(t.Date.Year, t.Date.Month, 1);
-                        return transactionMonth >= startMonth && transactionMonth <= currentMonth;
+                        var transactionDay = new DateOnly(t.Date.Year, t.Date.Month, t.Date.Day);
+                        return transactionDay >= startMonth && transactionDay <= currentDay;
                     })
                     .ToList();
 
-                var groupedByMonth = relevantTransactions
-                    .GroupBy(t => new DateOnly(t.Date.Year, t.Date.Month, 1))
+                var groupedByDays = relevantTransactions
+                    .GroupBy(t => t.Date)
                     .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
 
-                var monthsInWindow = i >= monthsWindow - 1 ? monthsWindow : i + 1;
-                var totalAmount = groupedByMonth.Values.Sum();
+                var monthsInWindow = i >= daysWindow - 1 ? daysWindow : i + 1;
+                var totalAmount = groupedByDays.Values.Sum();
                 var average = totalAmount / monthsInWindow;
 
                 result.Add(new RollingAverageDto
                 {
-                    Month = currentMonth,
+                    Day = currentDay,
                     Category = category,
                     Amount = average
                 });
