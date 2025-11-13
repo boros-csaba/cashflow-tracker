@@ -85,18 +85,31 @@ plot.Axes.Bottom.TickLabelStyle.OffsetX = 10;
 plot.Axes.Margins(bottom: 0, top: .3);
 plot.XLabel(" ");
 
+foreach (var category in categories)
+{
+    plot.Legend.ManualItems.Add(new() { LabelText = category, FillColor = GetColorForCategory(category) });
+}
+plot.Legend.Orientation = Orientation.Horizontal;
+plot.Legend.Alignment = Alignment.UpperCenter;
+
 plot.SavePng("demo.png", 1200, 1000);
 
 Color GetColorForCategory(string category)
 {
     if (category == "-") return Color.FromHex("ff0000");
     if (category == Transaction.Bevasarlas) return Color.FromHex("fecf6a");
+    if (category == Transaction.OrvosGyogyszer) return Color.FromHex("6abf69");
+    if (category == Transaction.Etterem) return Color.FromHex("39a275");
+    if (category == Transaction.HazKert) return Color.FromHex("26734d");
+    if (category == Transaction.KeszpenzFelvetel) return Color.FromHex("6a9bef");
     throw new InvalidOperationException($"No color defined for category '{category}'");
 }
 
 var sb = new StringBuilder();
 sb.AppendLine("Id\tDate\tType\tRecipient\tAmount\tCurrency\tAdditionalInfo\tSource\tCategory");
-var unknows = transactions.Where(t => t.Category == "-").ToList();
+var unknows = transactions.Where(t => t.Category == "-")
+    .OrderByDescending(t => t.Amount)
+    .ToList();
 foreach (var item in unknows)
 {
     sb.AppendLine($"{item.Id}\t{item.Date:yyyy-MM-dd}\t{item.Type}\t{item.Recipient}\t{item.Amount}\t{item.Currency}\t{item.AdditionalInfo}\t{item.Source}\t{item.Category}");

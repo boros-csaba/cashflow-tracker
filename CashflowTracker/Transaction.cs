@@ -13,8 +13,11 @@ public class Transaction
     public string Category { get; set; } = "-";
 
 
-    public static string HazAram = "Ház áram";
+    public static string HazKert = "Ház, kert";
     public static string Bevasarlas = "Bevásárlás";
+    public static string OrvosGyogyszer = "Orvos, gyógyszer";
+    public static string Etterem = "Étterem";
+    public static string KeszpenzFelvetel = "Készpénz felvétel";
     public static string Egyeb = "Egyéb";
 }
 
