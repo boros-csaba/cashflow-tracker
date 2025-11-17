@@ -217,7 +217,13 @@ namespace CashflowTracker.Services
             sb.AppendLine("        <div class=\"category-section\">");
             sb.AppendLine("            <h2>Category Details</h2>");
 
-            foreach (var category in categories)
+            var categoriesSorted = categories
+                .Select(c => new { Category = c, Total = rollingAverageData.Where(t => t.Category == c).Sum(t => t.Amount) })
+                .OrderByDescending(x => x.Total)
+                .Select(x => x.Category)
+                .ToList();
+
+            foreach (var category in categoriesSorted)
             {
                 var categoryData = rollingAverageData.Where(t => t.Category == category).ToList();
                 var categoryTotal = categoryData.Sum(t => t.Amount);
