@@ -18,6 +18,7 @@ public class Transaction
     public static string OrvosGyogyszer = "Orvos, gyógyszer";
     public static string Etterem = "Étterem";
     public static string KeszpenzFelvetel = "Készpénz felvétel";
+    public static string HitelTorleszto = "Hitel törlesztő";
     public static string Egyeb = "Egyéb";
 }
 

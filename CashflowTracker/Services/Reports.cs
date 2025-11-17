@@ -54,7 +54,7 @@ namespace CashflowTracker.Services
                         Value = (double)(nextBarBase + sum),
                         ValueBase = (double)nextBarBase,
                         Position = position,
-                        FillColor = GetColorForCategory(category),
+                        FillColor = ChartsService.GetColorForCategory(category),
                         LineWidth = 0
                     };
                     plot.Add.Bar(bar);
@@ -81,7 +81,7 @@ namespace CashflowTracker.Services
 
             foreach (var category in categories)
             {
-                plot.Legend.ManualItems.Add(new() { LabelText = category, FillColor = GetColorForCategory(category) });
+                plot.Legend.ManualItems.Add(new() { LabelText = category, FillColor = ChartsService.GetColorForCategory(category) });
             }
             plot.Legend.Orientation = Orientation.Horizontal;
             plot.Legend.Alignment = Alignment.UpperCenter;
@@ -114,7 +114,7 @@ namespace CashflowTracker.Services
                     Value = (double)(sum),
                     ValueBase = 0,
                     Position = position,
-                    FillColor = GetColorForCategory(category),
+                    FillColor = ChartsService.GetColorForCategory(category),
                     LineWidth = 0
                 };
                 plot.Add.Bar(bar);
@@ -137,7 +137,7 @@ namespace CashflowTracker.Services
             plot.Axes.Margins(bottom: 0, top: .3);
             plot.XLabel(" ");
 
-            plot.Legend.ManualItems.Add(new() { LabelText = category, FillColor = GetColorForCategory(category) });
+            plot.Legend.ManualItems.Add(new() { LabelText = category, FillColor = ChartsService.GetColorForCategory(category) });
             plot.Legend.Orientation = Orientation.Horizontal;
             plot.Legend.Alignment = Alignment.UpperCenter;
 
@@ -287,17 +287,6 @@ namespace CashflowTracker.Services
             sb.AppendLine("</html>");
 
             return sb.ToString();
-        }
-
-        private static Color GetColorForCategory(string category)
-        {
-            if (category == "-") return Color.FromHex("ff0000");
-            if (category == Transaction.Bevasarlas) return Color.FromHex("fecf6a");
-            if (category == Transaction.OrvosGyogyszer) return Color.FromHex("6abf69");
-            if (category == Transaction.Etterem) return Color.FromHex("39a275");
-            if (category == Transaction.HazKert) return Color.FromHex("26734d");
-            if (category == Transaction.KeszpenzFelvetel) return Color.FromHex("6a9bef");
-            throw new InvalidOperationException($"No color defined for category '{category}'");
         }
     }
 }

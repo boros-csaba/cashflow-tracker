@@ -123,7 +123,7 @@ namespace CashflowTracker.Services
             plot.SavePng(outputPath, Width, Height);
         }
 
-        private static Color GetColorForCategory(string category)
+        public static Color GetColorForCategory(string category)
         {
             if (category == "-") return Color.FromHex("ff0000");
             if (category == Transaction.Bevasarlas) return Color.FromHex("fecf6a");
@@ -131,6 +131,7 @@ namespace CashflowTracker.Services
             if (category == Transaction.Etterem) return Color.FromHex("39a275");
             if (category == Transaction.HazKert) return Color.FromHex("26734d");
             if (category == Transaction.KeszpenzFelvetel) return Color.FromHex("6a9bef");
+            if (category == Transaction.HitelTorleszto) return Color.FromHex("264f73");
             throw new InvalidOperationException($"No color defined for category '{category}'");
         }
     }
