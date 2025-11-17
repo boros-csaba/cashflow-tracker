@@ -255,7 +255,7 @@ namespace CashflowTracker.Services
                     sb.AppendLine("                    <table>");
                     sb.AppendLine("                        <thead>");
                     sb.AppendLine("                            <tr>");
-                    sb.AppendLine("                                <th>Date</th>");
+                    sb.AppendLine("                                <th style=\"min-width: 90px;\">Date</th>");
                     sb.AppendLine("                                <th>Recipient</th>");
                     sb.AppendLine("                                <th>Additional Info</th>");
                     sb.AppendLine("                                <th>Amount</th>");
