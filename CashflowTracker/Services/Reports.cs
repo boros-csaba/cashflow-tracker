@@ -31,24 +31,23 @@ namespace CashflowTracker.Services
             var categories = rollingAverageData.Select(t => t.Category).Distinct().ToArray();
             var plot = new Plot();
 
-            var days = new List<DateOnly>();
+            var periods = new List<DateTime>();
             var currentDate = startDate;
             while (currentDate < endDate)
             {
-                days.Add(new DateOnly(currentDate.Year, currentDate.Month, currentDate.Day));
-                currentDate = currentDate.AddDays(1);
+                periods.Add(currentDate);
+                currentDate = currentDate.AddDays(30);
             }
 
             var position = 0;
-            foreach (var day in days)
+            foreach (var periodStart in periods)
             {
-                if (day.Day != 1)
-                    continue;
-                var dayTransactions = rollingAverageData.Where(t => t.Day.Year == day.Year && t.Day.Month == day.Month && t.Day.Day == day.Day).ToList();
+                var periodStartDate = DateOnly.FromDateTime(periodStart);
+                var periodTransactions = rollingAverageData.Where(t => t.Day == periodStartDate).ToList();
                 var nextBarBase = 0m;
                 foreach (var category in categories)
                 {
-                    var sum = dayTransactions.Where(t => t.Category == category).Sum(t => t.Amount);
+                    var sum = periodTransactions.Where(t => t.Category == category).Sum(t => t.Amount);
                     var bar = new Bar
                     {
                         Value = (double)(nextBarBase + sum),
@@ -65,11 +64,9 @@ namespace CashflowTracker.Services
 
             var tickGen = new NumericManual();
             position = 0;
-            foreach (var day in days)
+            foreach (var periodStart in periods)
             {
-                if (day.Day != 1)
-                    continue;
-                tickGen.AddMajor(position++, day.ToString("yyyy-MM"));
+                tickGen.AddMajor(position++, periodStart.ToString("yyyy-MM-dd"));
             }
             plot.Axes.Bottom.TickGenerator = tickGen;
             plot.Axes.Bottom.TickLabelStyle.Rotation = 45;
@@ -94,21 +91,20 @@ namespace CashflowTracker.Services
         {
             var plot = new Plot();
 
-            var days = new List<DateOnly>();
+            var periods = new List<DateTime>();
             var currentDate = startDate;
             while (currentDate < endDate)
             {
-                days.Add(new DateOnly(currentDate.Year, currentDate.Month, currentDate.Day));
-                currentDate = currentDate.AddDays(1);
+                periods.Add(currentDate);
+                currentDate = currentDate.AddDays(30);
             }
 
             var position = 0;
-            foreach (var day in days)
+            foreach (var periodStart in periods)
             {
-                if (day.Day != 1)
-                    continue;
-                var dayTransactions = rollingAverageData.Where(t => t.Day.Year == day.Year && t.Day.Month == day.Month && t.Day.Day == day.Day).ToList();
-                var sum = dayTransactions.Where(t => t.Category == category).Sum(t => t.Amount);
+                var periodStartDate = DateOnly.FromDateTime(periodStart);
+                var periodTransactions = rollingAverageData.Where(t => t.Day == periodStartDate).ToList();
+                var sum = periodTransactions.Where(t => t.Category == category).Sum(t => t.Amount);
                 var bar = new Bar
                 {
                     Value = (double)(sum),
@@ -123,11 +119,9 @@ namespace CashflowTracker.Services
 
             var tickGen = new NumericManual();
             position = 0;
-            foreach (var day in days)
+            foreach (var periodStart in periods)
             {
-                if (day.Day != 1)
-                    continue;
-                tickGen.AddMajor(position++, day.ToString("yyyy-MM"));
+                tickGen.AddMajor(position++, periodStart.ToString("yyyy-MM-dd"));
             }
             plot.Axes.Bottom.TickGenerator = tickGen;
             plot.Axes.Bottom.TickLabelStyle.Rotation = 45;
@@ -233,7 +227,7 @@ namespace CashflowTracker.Services
             sb.AppendLine($"                    <div class=\"stat-value\">{totalAmount:N0}</div>");
             sb.AppendLine($"                </div>");
             sb.AppendLine($"                <div class=\"stat-card\">");
-            sb.AppendLine($"                    <div class=\"stat-label\">Monthly Average</div>");
+            sb.AppendLine($"                    <div class=\"stat-label\">30-Day Average</div>");
             sb.AppendLine($"                    <div class=\"stat-value\">{monthlyAverage:N0}</div>");
             sb.AppendLine($"                </div>");
             sb.AppendLine($"                <div class=\"stat-card\">");
@@ -243,7 +237,7 @@ namespace CashflowTracker.Services
             sb.AppendLine("            </div>");
             sb.AppendLine("        </div>");
             sb.AppendLine("        <div class=\"chart-container\">");
-            sb.AppendLine("            <h2>Monthly Rolling Average by Category</h2>");
+            sb.AppendLine("            <h2>30-Day Period Rolling Average by Category</h2>");
             sb.AppendLine($"            <img src=\"data:image/png;base64,{chartBase64}\" alt=\"Cashflow Chart\" />");
             sb.AppendLine("        </div>");
 
@@ -272,7 +266,7 @@ namespace CashflowTracker.Services
                 sb.AppendLine($"                            <div class=\"stat-value\">{categoryTotal:N0}</div>");
                 sb.AppendLine($"                        </div>");
                 sb.AppendLine($"                        <div class=\"stat-card\">");
-                sb.AppendLine($"                            <div class=\"stat-label\">Monthly Average</div>");
+                sb.AppendLine($"                            <div class=\"stat-label\">30-Day Average</div>");
                 sb.AppendLine($"                            <div class=\"stat-value\">{categoryMonthlyAverage:N0}</div>");
                 sb.AppendLine($"                        </div>");
                 sb.AppendLine($"                        <div class=\"stat-card\">");

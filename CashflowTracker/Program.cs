@@ -5,7 +5,7 @@ using System.Text;
 string dataFolder = "../../../../data";
 string outputFolder = "C:/Users/boros/My Drive/penz";
 var endDate = new DateTime(2025, 9, 15, 0, 0, 0, DateTimeKind.Local);
-var startDate = endDate.AddMonths(-24);
+var startDate = endDate.AddDays(-24 * 30);
 
 
 
@@ -28,10 +28,13 @@ transactions = Categorizer.Categorize(transactions);
 
 var rollingAverageData = RollingAverageCalculator.CalculateRollingAverageByCategory(transactions, 90);
 rollingAverageData = rollingAverageData
-    .GroupBy(t => new { Date = new DateOnly(t.Day.Year, t.Day.Month, 1), t.Category })
+    .GroupBy(t => new {
+        PeriodNumber = (t.Day.ToDateTime(TimeOnly.MinValue) - startDate).Days / 30,
+        t.Category
+    })
     .Select(g => new RollingAverageDto
     {
-        Day = g.Key.Date,
+        Day = DateOnly.FromDateTime(startDate.AddDays(g.Key.PeriodNumber * 30)),
         Category = g.Key.Category,
         Amount = g.Sum(t => t.Amount)
     }).ToList();

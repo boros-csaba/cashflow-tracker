@@ -134,6 +134,8 @@ namespace CashflowTracker.Services
             if (category == Transaction.HitelTorleszto) return Color.FromHex("264f73");
             if (category == Transaction.HotelRepulo) return Color.FromHex("ab6aff");
             if (category == Transaction.Ruha) return Color.FromHex("777777");
+            if (category == Transaction.ButorHaztartas) return Color.FromHex("b5b5b5");
+            if (category == Transaction.Elektronika) return Color.FromHex("ff6ab3");
             throw new InvalidOperationException($"No color defined for category '{category}'");
         }
     }

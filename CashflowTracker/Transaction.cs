@@ -21,6 +21,8 @@ public class Transaction
     public static string HitelTorleszto = "Hitel törlesztő";
     public static string HotelRepulo = "Hotel, repülő";
     public static string Ruha = "HM, decathlo, ruha";
+    public static string Elektronika = "Alza, media markt, elektronika";
+    public static string ButorHaztartas = "Bútor, háztartás";
     public static string Egyeb = "Egyéb";
 }
 
