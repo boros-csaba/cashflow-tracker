@@ -12,7 +12,16 @@ namespace CashflowTracker.Services
         public static void GenerateHtmlReport(string outputPath, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
         {
             var chartBase64 = GenerateChartAsBase64(rollingAverageData, startDate, endDate);
-            var html = BuildHtmlContent(chartBase64, rollingAverageData, startDate, endDate);
+
+            var categories = rollingAverageData.Select(t => t.Category).Distinct().ToList();
+            var categoryCharts = new Dictionary<string, string>();
+            foreach (var category in categories)
+            {
+                var categoryData = rollingAverageData.Where(t => t.Category == category).ToList();
+                categoryCharts[category] = GenerateCategoryChartAsBase64(category, categoryData, startDate, endDate);
+            }
+
+            var html = BuildHtmlContent(chartBase64, categoryCharts, rollingAverageData, startDate, endDate);
 
             File.WriteAllText(outputPath, html);
         }
@@ -81,7 +90,62 @@ namespace CashflowTracker.Services
             return Convert.ToBase64String(imageBytes);
         }
 
-        private static string BuildHtmlContent(string chartBase64, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
+        private static string GenerateCategoryChartAsBase64(string category, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
+        {
+            var plot = new Plot();
+
+            var days = new List<DateOnly>();
+            var currentDate = startDate;
+            while (currentDate < endDate)
+            {
+                days.Add(new DateOnly(currentDate.Year, currentDate.Month, currentDate.Day));
+                currentDate = currentDate.AddDays(1);
+            }
+
+            var position = 0;
+            foreach (var day in days)
+            {
+                if (day.Day != 1)
+                    continue;
+                var dayTransactions = rollingAverageData.Where(t => t.Day.Year == day.Year && t.Day.Month == day.Month && t.Day.Day == day.Day).ToList();
+                var sum = dayTransactions.Where(t => t.Category == category).Sum(t => t.Amount);
+                var bar = new Bar
+                {
+                    Value = (double)(sum),
+                    ValueBase = 0,
+                    Position = position,
+                    FillColor = GetColorForCategory(category),
+                    LineWidth = 0
+                };
+                plot.Add.Bar(bar);
+                position++;
+            }
+
+            var tickGen = new NumericManual();
+            position = 0;
+            foreach (var day in days)
+            {
+                if (day.Day != 1)
+                    continue;
+                tickGen.AddMajor(position++, day.ToString("yyyy-MM"));
+            }
+            plot.Axes.Bottom.TickGenerator = tickGen;
+            plot.Axes.Bottom.TickLabelStyle.Rotation = 45;
+            plot.Axes.Bottom.TickLabelStyle.OffsetY = 18;
+            plot.Axes.Bottom.TickLabelStyle.OffsetX = 10;
+
+            plot.Axes.Margins(bottom: 0, top: .3);
+            plot.XLabel(" ");
+
+            plot.Legend.ManualItems.Add(new() { LabelText = category, FillColor = GetColorForCategory(category) });
+            plot.Legend.Orientation = Orientation.Horizontal;
+            plot.Legend.Alignment = Alignment.UpperCenter;
+
+            var imageBytes = plot.GetImageBytes(Width, Height, ImageFormat.Png);
+            return Convert.ToBase64String(imageBytes);
+        }
+
+        private static string BuildHtmlContent(string chartBase64, Dictionary<string, string> categoryCharts, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
         {
             var categories = rollingAverageData.Select(t => t.Category).Distinct().ToList();
             var totalAmount = rollingAverageData.Sum(t => t.Amount);
@@ -106,8 +170,12 @@ namespace CashflowTracker.Services
             sb.AppendLine("        .stat-value { font-size: 24px; font-weight: bold; color: #333; }");
             sb.AppendLine("        .chart-container { text-align: center; margin: 30px 0; }");
             sb.AppendLine("        .chart-container img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; }");
-            sb.AppendLine("        .category-list { list-style: none; padding: 0; }");
-            sb.AppendLine("        .category-list li { padding: 8px; margin: 5px 0; background-color: #f0f0f0; border-radius: 4px; }");
+            sb.AppendLine("        .category-section { margin: 20px 0; }");
+            sb.AppendLine("        details { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; margin: 10px 0; }");
+            sb.AppendLine("        details summary { padding: 15px 20px; cursor: pointer; font-size: 18px; font-weight: bold; color: #333; user-select: none; }");
+            sb.AppendLine("        details summary:hover { background-color: #e9e9e9; }");
+            sb.AppendLine("        details[open] summary { border-bottom: 1px solid #ddd; background-color: #e9e9e9; }");
+            sb.AppendLine("        .category-content { padding: 20px; }");
             sb.AppendLine("    </style>");
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
@@ -137,6 +205,41 @@ namespace CashflowTracker.Services
             sb.AppendLine("        <div class=\"chart-container\">");
             sb.AppendLine("            <h2>Monthly Rolling Average by Category</h2>");
             sb.AppendLine($"            <img src=\"data:image/png;base64,{chartBase64}\" alt=\"Cashflow Chart\" />");
+            sb.AppendLine("        </div>");
+
+            sb.AppendLine("        <div class=\"category-section\">");
+            sb.AppendLine("            <h2>Category Details</h2>");
+
+            foreach (var category in categories)
+            {
+                var categoryData = rollingAverageData.Where(t => t.Category == category).ToList();
+                var categoryTotal = categoryData.Sum(t => t.Amount);
+                var categoryMonthlyAverage = categoryTotal / ((endDate - startDate).Days / 30.0m);
+
+                sb.AppendLine("            <details>");
+                sb.AppendLine($"                <summary>{category} - Total: {categoryTotal:N2}</summary>");
+                sb.AppendLine("                <div class=\"category-content\">");
+                sb.AppendLine("                    <div class=\"stat-grid\">");
+                sb.AppendLine($"                        <div class=\"stat-card\">");
+                sb.AppendLine($"                            <div class=\"stat-label\">Total Amount</div>");
+                sb.AppendLine($"                            <div class=\"stat-value\">{categoryTotal:N2}</div>");
+                sb.AppendLine($"                        </div>");
+                sb.AppendLine($"                        <div class=\"stat-card\">");
+                sb.AppendLine($"                            <div class=\"stat-label\">Monthly Average</div>");
+                sb.AppendLine($"                            <div class=\"stat-value\">{categoryMonthlyAverage:N2}</div>");
+                sb.AppendLine($"                        </div>");
+                sb.AppendLine($"                        <div class=\"stat-card\">");
+                sb.AppendLine($"                            <div class=\"stat-label\">Percentage of Total</div>");
+                sb.AppendLine($"                            <div class=\"stat-value\">{(categoryTotal / totalAmount * 100):N1}%</div>");
+                sb.AppendLine($"                        </div>");
+                sb.AppendLine("                    </div>");
+                sb.AppendLine("                    <div class=\"chart-container\">");
+                sb.AppendLine($"                        <img src=\"data:image/png;base64,{categoryCharts[category]}\" alt=\"{category} Chart\" />");
+                sb.AppendLine("                    </div>");
+                sb.AppendLine("                </div>");
+                sb.AppendLine("            </details>");
+            }
+
             sb.AppendLine("        </div>");
             sb.AppendLine("    </div>");
             sb.AppendLine("</body>");
