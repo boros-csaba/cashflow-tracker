@@ -39,6 +39,7 @@ namespace CashflowTracker.Services
             if (transaction.Recipient == "NAV" ||
                 transaction.Recipient == "OTPMOBL nav" ||
                 transaction.Recipient == "Fővárosi Önkormányzat" ||
+                transaction.Recipient == "SIMPLEP nav" ||
                 transaction.AdditionalInfo == "Converted USD to HUF" ||
                 transaction.AdditionalInfo == "Received money from Boros Csaba E.V. with reference")
             {
@@ -55,11 +56,12 @@ namespace CashflowTracker.Services
 
         private static Dictionary<string, List<string>> Keywords = new Dictionary<string, List<string>>
         {
-            { Transaction.Bevasarlas, ["auchan", "tesco", "aldi", "spar"] },
-            { Transaction.OrvosGyogyszer, ["gyogyszertar", "GYOGYSZE"] },
-            { Transaction.Etterem, ["etterem", "foodora", "Bumerang Bufe"] },
+            { Transaction.Bevasarlas, ["auchan", "tesco", "aldi", "spar", "LIDL", "COOP"] },
+            { Transaction.OrvosGyogyszer, ["gyogyszertar", "GYOGYSZE", "PATIKA", "Tritonlife"] },
+            { Transaction.Etterem, ["etterem", "foodora", "Bumerang Bufe", "PIZZA", "Étterem", "Kávéház", "VENDEGLO"] },
             { Transaction.HazKert, ["Vedanta Home", "Sun-Set Shading", "Gönczi Dániel"] },
-            { Transaction.HitelTorleszto, ["Hitel kamat törl. ütem szerint"] }
+            { Transaction.HitelTorleszto, ["Hitel kamat törl. ütem szerint"] },
+            { Transaction.HotelRepulo, ["RYANAIR", "BOOKING.COM", "HOTEL"] },
         };
     }
 }

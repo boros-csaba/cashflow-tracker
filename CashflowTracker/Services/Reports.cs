@@ -218,7 +218,7 @@ namespace CashflowTracker.Services
             sb.AppendLine("            <h2>Category Details</h2>");
 
             var categoriesSorted = categories
-                .Select(c => new { Category = c, Total = rollingAverageData.Where(t => t.Category == c).Sum(t => t.Amount) })
+                .Select(c => new { Category = c, Total = transactions.Where(t => t.Category == c).Sum(t => t.Amount) })
                 .OrderByDescending(x => x.Total)
                 .Select(x => x.Category)
                 .ToList();
@@ -226,7 +226,8 @@ namespace CashflowTracker.Services
             foreach (var category in categoriesSorted)
             {
                 var categoryData = rollingAverageData.Where(t => t.Category == category).ToList();
-                var categoryTotal = categoryData.Sum(t => t.Amount);
+                var categoryTransactionsForTotal = transactions.Where(t => t.Category == category).ToList();
+                var categoryTotal = categoryTransactionsForTotal.Sum(t => t.Amount);
                 var categoryMonthlyAverage = categoryTotal / ((endDate - startDate).Days / 30.0m);
 
                 sb.AppendLine("            <details>");
