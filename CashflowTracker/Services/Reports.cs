@@ -183,7 +183,40 @@ namespace CashflowTracker.Services
             sb.AppendLine("        table tbody tr:hover { background-color: #f5f5f5; }");
             sb.AppendLine("        table tbody tr:nth-child(even) { background-color: #fafafa; }");
             sb.AppendLine("        .amount-cell { text-align: right; font-weight: bold; }");
+            sb.AppendLine("        .sort-button { background-color: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; margin: 10px 0; font-size: 14px; }");
+            sb.AppendLine("        .sort-button:hover { background-color: #45a049; }");
             sb.AppendLine("    </style>");
+            sb.AppendLine("    <script>");
+            sb.AppendLine("        function toggleSort(categoryId) {");
+            sb.AppendLine("            const table = document.getElementById('table-' + categoryId);");
+            sb.AppendLine("            const button = document.getElementById('btn-' + categoryId);");
+            sb.AppendLine("            const tbody = table.querySelector('tbody');");
+            sb.AppendLine("            const rows = Array.from(tbody.querySelectorAll('tr'));");
+            sb.AppendLine("            ");
+            sb.AppendLine("            const currentSort = button.dataset.sort || 'amount';");
+            sb.AppendLine("            ");
+            sb.AppendLine("            if (currentSort === 'amount') {");
+            sb.AppendLine("                rows.sort((a, b) => {");
+            sb.AppendLine("                    const dateA = new Date(a.dataset.date);");
+            sb.AppendLine("                    const dateB = new Date(b.dataset.date);");
+            sb.AppendLine("                    return dateB - dateA;");
+            sb.AppendLine("                });");
+            sb.AppendLine("                button.textContent = 'Sort by Amount';");
+            sb.AppendLine("                button.dataset.sort = 'date';");
+            sb.AppendLine("            } else {");
+            sb.AppendLine("                rows.sort((a, b) => {");
+            sb.AppendLine("                    const amountA = parseFloat(a.dataset.amount);");
+            sb.AppendLine("                    const amountB = parseFloat(b.dataset.amount);");
+            sb.AppendLine("                    return amountB - amountA;");
+            sb.AppendLine("                });");
+            sb.AppendLine("                button.textContent = 'Sort by Date';");
+            sb.AppendLine("                button.dataset.sort = 'amount';");
+            sb.AppendLine("            }");
+            sb.AppendLine("            ");
+            sb.AppendLine("            tbody.innerHTML = '';");
+            sb.AppendLine("            rows.forEach(row => tbody.appendChild(row));");
+            sb.AppendLine("        }");
+            sb.AppendLine("    </script>");
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine("    <div class=\"container\">");
@@ -258,8 +291,10 @@ namespace CashflowTracker.Services
 
                 if (categoryTransactions.Any())
                 {
+                    var categoryId = category.Replace(" ", "").Replace(",", "").Replace("-", "");
                     sb.AppendLine("                    <h3>Transactions</h3>");
-                    sb.AppendLine("                    <table>");
+                    sb.AppendLine($"                    <button class=\"sort-button\" id=\"btn-{categoryId}\" data-sort=\"amount\" onclick=\"toggleSort('{categoryId}')\">Sort by Date</button>");
+                    sb.AppendLine($"                    <table id=\"table-{categoryId}\">");
                     sb.AppendLine("                        <thead>");
                     sb.AppendLine("                            <tr>");
                     sb.AppendLine("                                <th style=\"min-width: 90px;\">Date</th>");
@@ -272,7 +307,7 @@ namespace CashflowTracker.Services
 
                     foreach (var transaction in categoryTransactions)
                     {
-                        sb.AppendLine("                            <tr>");
+                        sb.AppendLine($"                            <tr data-date=\"{transaction.Date:yyyy-MM-dd}\" data-amount=\"{transaction.Amount}\">");
                         sb.AppendLine($"                                <td>{transaction.Date:yyyy-MM-dd}</td>");
                         sb.AppendLine($"                                <td>{transaction.Recipient}</td>");
                         sb.AppendLine($"                                <td>{transaction.AdditionalInfo}</td>");

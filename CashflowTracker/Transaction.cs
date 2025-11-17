@@ -20,6 +20,7 @@ public class Transaction
     public static string KeszpenzFelvetel = "Készpénz felvétel";
     public static string HitelTorleszto = "Hitel törlesztő";
     public static string HotelRepulo = "Hotel, repülő";
+    public static string Ruha = "HM, decathlo, ruha";
     public static string Egyeb = "Egyéb";
 }
 
