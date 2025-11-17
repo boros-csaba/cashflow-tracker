@@ -58,4 +58,4 @@ foreach (var item in unknows)
 var s = sb.ToString();
 var ss = 0;
 
-Reports.GenerateHtmlReport(Path.Combine(outputFolder, "cashflow_report.html"), rollingAverageData, startDate, endDate);
+Reports.GenerateHtmlReport(Path.Combine(outputFolder, "cashflow_report.html"), transactions, rollingAverageData, startDate, endDate);

@@ -9,7 +9,7 @@ namespace CashflowTracker.Services
         private static int Width = 1200;
         private static int Height = 800;
 
-        public static void GenerateHtmlReport(string outputPath, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
+        public static void GenerateHtmlReport(string outputPath, List<Transaction> transactions, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
         {
             var chartBase64 = GenerateChartAsBase64(rollingAverageData, startDate, endDate);
 
@@ -21,7 +21,7 @@ namespace CashflowTracker.Services
                 categoryCharts[category] = GenerateCategoryChartAsBase64(category, categoryData, startDate, endDate);
             }
 
-            var html = BuildHtmlContent(chartBase64, categoryCharts, rollingAverageData, startDate, endDate);
+            var html = BuildHtmlContent(chartBase64, categoryCharts, transactions, rollingAverageData, startDate, endDate);
 
             File.WriteAllText(outputPath, html);
         }
@@ -145,7 +145,7 @@ namespace CashflowTracker.Services
             return Convert.ToBase64String(imageBytes);
         }
 
-        private static string BuildHtmlContent(string chartBase64, Dictionary<string, string> categoryCharts, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
+        private static string BuildHtmlContent(string chartBase64, Dictionary<string, string> categoryCharts, List<Transaction> transactions, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
         {
             var categories = rollingAverageData.Select(t => t.Category).Distinct().ToList();
             var totalAmount = rollingAverageData.Sum(t => t.Amount);
@@ -176,6 +176,13 @@ namespace CashflowTracker.Services
             sb.AppendLine("        details summary:hover { background-color: #e9e9e9; }");
             sb.AppendLine("        details[open] summary { border-bottom: 1px solid #ddd; background-color: #e9e9e9; }");
             sb.AppendLine("        .category-content { padding: 20px; }");
+            sb.AppendLine("        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }");
+            sb.AppendLine("        table thead { background-color: #4CAF50; color: white; }");
+            sb.AppendLine("        table th { padding: 12px; text-align: left; font-weight: bold; }");
+            sb.AppendLine("        table td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            sb.AppendLine("        table tbody tr:hover { background-color: #f5f5f5; }");
+            sb.AppendLine("        table tbody tr:nth-child(even) { background-color: #fafafa; }");
+            sb.AppendLine("        .amount-cell { text-align: right; font-weight: bold; }");
             sb.AppendLine("    </style>");
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
@@ -236,6 +243,40 @@ namespace CashflowTracker.Services
                 sb.AppendLine("                    <div class=\"chart-container\">");
                 sb.AppendLine($"                        <img src=\"data:image/png;base64,{categoryCharts[category]}\" alt=\"{category} Chart\" />");
                 sb.AppendLine("                    </div>");
+
+                var categoryTransactions = transactions
+                    .Where(t => t.Category == category)
+                    .OrderByDescending(t => t.Amount)
+                    .ToList();
+
+                if (categoryTransactions.Any())
+                {
+                    sb.AppendLine("                    <h3>Transactions</h3>");
+                    sb.AppendLine("                    <table>");
+                    sb.AppendLine("                        <thead>");
+                    sb.AppendLine("                            <tr>");
+                    sb.AppendLine("                                <th>Date</th>");
+                    sb.AppendLine("                                <th>Recipient</th>");
+                    sb.AppendLine("                                <th>Additional Info</th>");
+                    sb.AppendLine("                                <th>Amount</th>");
+                    sb.AppendLine("                            </tr>");
+                    sb.AppendLine("                        </thead>");
+                    sb.AppendLine("                        <tbody>");
+
+                    foreach (var transaction in categoryTransactions)
+                    {
+                        sb.AppendLine("                            <tr>");
+                        sb.AppendLine($"                                <td>{transaction.Date:yyyy-MM-dd}</td>");
+                        sb.AppendLine($"                                <td>{transaction.Recipient}</td>");
+                        sb.AppendLine($"                                <td>{transaction.AdditionalInfo}</td>");
+                        sb.AppendLine($"                                <td class=\"amount-cell\">{transaction.Amount:N0}</td>");
+                        sb.AppendLine("                            </tr>");
+                    }
+
+                    sb.AppendLine("                        </tbody>");
+                    sb.AppendLine("                    </table>");
+                }
+
                 sb.AppendLine("                </div>");
                 sb.AppendLine("            </details>");
             }
