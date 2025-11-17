@@ -190,11 +190,11 @@ namespace CashflowTracker.Services
             sb.AppendLine($"                </div>");
             sb.AppendLine($"                <div class=\"stat-card\">");
             sb.AppendLine($"                    <div class=\"stat-label\">Total Amount</div>");
-            sb.AppendLine($"                    <div class=\"stat-value\">{totalAmount:N2}</div>");
+            sb.AppendLine($"                    <div class=\"stat-value\">{totalAmount:N0}</div>");
             sb.AppendLine($"                </div>");
             sb.AppendLine($"                <div class=\"stat-card\">");
             sb.AppendLine($"                    <div class=\"stat-label\">Monthly Average</div>");
-            sb.AppendLine($"                    <div class=\"stat-value\">{monthlyAverage:N2}</div>");
+            sb.AppendLine($"                    <div class=\"stat-value\">{monthlyAverage:N0}</div>");
             sb.AppendLine($"                </div>");
             sb.AppendLine($"                <div class=\"stat-card\">");
             sb.AppendLine($"                    <div class=\"stat-label\">Categories</div>");
@@ -217,16 +217,16 @@ namespace CashflowTracker.Services
                 var categoryMonthlyAverage = categoryTotal / ((endDate - startDate).Days / 30.0m);
 
                 sb.AppendLine("            <details>");
-                sb.AppendLine($"                <summary>{category} - Total: {categoryTotal:N2}</summary>");
+                sb.AppendLine($"                <summary>{category} - Total: {categoryTotal:N0}</summary>");
                 sb.AppendLine("                <div class=\"category-content\">");
                 sb.AppendLine("                    <div class=\"stat-grid\">");
                 sb.AppendLine($"                        <div class=\"stat-card\">");
                 sb.AppendLine($"                            <div class=\"stat-label\">Total Amount</div>");
-                sb.AppendLine($"                            <div class=\"stat-value\">{categoryTotal:N2}</div>");
+                sb.AppendLine($"                            <div class=\"stat-value\">{categoryTotal:N0}</div>");
                 sb.AppendLine($"                        </div>");
                 sb.AppendLine($"                        <div class=\"stat-card\">");
                 sb.AppendLine($"                            <div class=\"stat-label\">Monthly Average</div>");
-                sb.AppendLine($"                            <div class=\"stat-value\">{categoryMonthlyAverage:N2}</div>");
+                sb.AppendLine($"                            <div class=\"stat-value\">{categoryMonthlyAverage:N0}</div>");
                 sb.AppendLine($"                        </div>");
                 sb.AppendLine($"                        <div class=\"stat-card\">");
                 sb.AppendLine($"                            <div class=\"stat-label\">Percentage of Total</div>");
