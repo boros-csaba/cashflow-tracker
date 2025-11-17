@@ -37,11 +37,14 @@ rollingAverageData = rollingAverageData
     }).ToList();
 
 
-
-var categories = rollingAverageData.Select(t => t.Category).Distinct().ToArray();
-
 ChartsService.GenerateCombinedChart(Path.Combine(outputFolder, "rolling_average_combined_chart.png"), rollingAverageData, startDate, endDate);
 
+var categories = rollingAverageData.Select(t => t.Category).Distinct().ToArray();
+foreach (var category in categories)
+{
+    var categoryData = rollingAverageData.Where(t => t.Category == category).ToList();
+    ChartsService.GenerateCategoryChart(Path.Combine(outputFolder, $"rolling_average_{category}_chart.png"), category, categoryData, startDate, endDate);
+}
 
 var sb = new StringBuilder();
 sb.AppendLine("Id\tDate\tType\tRecipient\tAmount\tCurrency\tAdditionalInfo\tSource\tCategory");
