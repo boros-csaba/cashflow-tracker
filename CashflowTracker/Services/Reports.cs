@@ -139,6 +139,65 @@ namespace CashflowTracker.Services
             return Convert.ToBase64String(imageBytes);
         }
 
+        private static string GenerateTrendsHtml(List<Transaction> transactions, DateTime endDate, string? category = null)
+        {
+            var sb = new StringBuilder();
+            var filteredTransactions = category == null
+                ? transactions
+                : transactions.Where(t => t.Category == category).ToList();
+
+            var last30Days = filteredTransactions.Where(t => t.Date >= endDate.AddDays(-30) && t.Date <= endDate).Sum(t => t.Amount);
+            var prev30Days = filteredTransactions.Where(t => t.Date >= endDate.AddDays(-60) && t.Date < endDate.AddDays(-30)).Sum(t => t.Amount);
+            var prev90Days = filteredTransactions.Where(t => t.Date >= endDate.AddDays(-120) && t.Date < endDate.AddDays(-30)).Sum(t => t.Amount) / 3m;
+            var prev180Days = filteredTransactions.Where(t => t.Date >= endDate.AddDays(-210) && t.Date < endDate.AddDays(-30)).Sum(t => t.Amount) / 6m;
+
+            sb.AppendLine("            <div class=\"trends-section\">");
+            sb.AppendLine("                <h3>Trend Analysis - Last 30 Days</h3>");
+            sb.AppendLine($"                <div class=\"trend-item trend-neutral\">");
+            sb.AppendLine($"                    <span class=\"trend-label\">Last 30 Days</span>");
+            sb.AppendLine($"                    <span class=\"trend-value\">{last30Days:N0}</span>");
+            sb.AppendLine($"                </div>");
+
+            if (prev30Days > 0)
+            {
+                var change30 = ((last30Days - prev30Days) / prev30Days) * 100;
+                var trendClass = change30 > 0 ? "trend-negative" : (change30 < 0 ? "trend-positive" : "trend-neutral");
+                var changeClass = change30 > 0 ? "negative" : (change30 < 0 ? "positive" : "");
+                var changeSymbol = change30 > 0 ? "+" : "";
+                sb.AppendLine($"                <div class=\"trend-item {trendClass}\">");
+                sb.AppendLine($"                    <span class=\"trend-label\">vs Previous 30 Days</span>");
+                sb.AppendLine($"                    <span class=\"trend-value\">{prev30Days:N0}<span class=\"trend-change {changeClass}\">{changeSymbol}{change30:N1}%</span></span>");
+                sb.AppendLine($"                </div>");
+            }
+
+            if (prev90Days > 0)
+            {
+                var change90 = ((last30Days - prev90Days) / prev90Days) * 100;
+                var trendClass = change90 > 0 ? "trend-negative" : (change90 < 0 ? "trend-positive" : "trend-neutral");
+                var changeClass = change90 > 0 ? "negative" : (change90 < 0 ? "positive" : "");
+                var changeSymbol = change90 > 0 ? "+" : "";
+                sb.AppendLine($"                <div class=\"trend-item {trendClass}\">");
+                sb.AppendLine($"                    <span class=\"trend-label\">vs Previous 90 Days Avg</span>");
+                sb.AppendLine($"                    <span class=\"trend-value\">{prev90Days:N0}<span class=\"trend-change {changeClass}\">{changeSymbol}{change90:N1}%</span></span>");
+                sb.AppendLine($"                </div>");
+            }
+
+            if (prev180Days > 0)
+            {
+                var change180 = ((last30Days - prev180Days) / prev180Days) * 100;
+                var trendClass = change180 > 0 ? "trend-negative" : (change180 < 0 ? "trend-positive" : "trend-neutral");
+                var changeClass = change180 > 0 ? "negative" : (change180 < 0 ? "positive" : "");
+                var changeSymbol = change180 > 0 ? "+" : "";
+                sb.AppendLine($"                <div class=\"trend-item {trendClass}\">");
+                sb.AppendLine($"                    <span class=\"trend-label\">vs Previous 180 Days Avg</span>");
+                sb.AppendLine($"                    <span class=\"trend-value\">{prev180Days:N0}<span class=\"trend-change {changeClass}\">{changeSymbol}{change180:N1}%</span></span>");
+                sb.AppendLine($"                </div>");
+            }
+
+            sb.AppendLine("            </div>");
+            return sb.ToString();
+        }
+
         private static string BuildHtmlContent(string chartBase64, Dictionary<string, string> categoryCharts, List<Transaction> transactions, List<RollingAverageDto> rollingAverageData, DateTime startDate, DateTime endDate)
         {
             var categories = rollingAverageData.Select(t => t.Category).Distinct().ToList();
@@ -179,6 +238,17 @@ namespace CashflowTracker.Services
             sb.AppendLine("        .amount-cell { text-align: right; font-weight: bold; }");
             sb.AppendLine("        .sort-button { background-color: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; margin: 10px 0; font-size: 14px; }");
             sb.AppendLine("        .sort-button:hover { background-color: #45a049; }");
+            sb.AppendLine("        .trends-section { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }");
+            sb.AppendLine("        .trends-section h3 { margin-top: 0; color: #4CAF50; }");
+            sb.AppendLine("        .trend-item { display: flex; justify-content: space-between; padding: 10px; margin: 5px 0; background-color: white; border-radius: 4px; border-left: 4px solid #ddd; }");
+            sb.AppendLine("        .trend-positive { border-left-color: #4CAF50; }");
+            sb.AppendLine("        .trend-negative { border-left-color: #f44336; }");
+            sb.AppendLine("        .trend-neutral { border-left-color: #999; }");
+            sb.AppendLine("        .trend-label { font-weight: 500; color: #666; }");
+            sb.AppendLine("        .trend-value { font-weight: bold; }");
+            sb.AppendLine("        .trend-change { margin-left: 10px; padding: 2px 8px; border-radius: 3px; font-size: 12px; }");
+            sb.AppendLine("        .trend-change.positive { background-color: #e8f5e9; color: #2e7d32; }");
+            sb.AppendLine("        .trend-change.negative { background-color: #ffebee; color: #c62828; }");
             sb.AppendLine("    </style>");
             sb.AppendLine("    <script>");
             sb.AppendLine("        function toggleSort(categoryId) {");
@@ -235,6 +305,7 @@ namespace CashflowTracker.Services
             sb.AppendLine($"                    <div class=\"stat-value\">{categories.Count}</div>");
             sb.AppendLine($"                </div>");
             sb.AppendLine("            </div>");
+            sb.Append(GenerateTrendsHtml(transactions, endDate));
             sb.AppendLine("        </div>");
             sb.AppendLine("        <div class=\"chart-container\">");
             sb.AppendLine("            <h2>30-Day Period Rolling Average by Category</h2>");
@@ -274,6 +345,7 @@ namespace CashflowTracker.Services
                 sb.AppendLine($"                            <div class=\"stat-value\">{(categoryTotal / totalAmount * 100):N1}%</div>");
                 sb.AppendLine($"                        </div>");
                 sb.AppendLine("                    </div>");
+                sb.Append(GenerateTrendsHtml(transactions, endDate, category));
                 sb.AppendLine("                    <div class=\"chart-container\">");
                 sb.AppendLine($"                        <img src=\"data:image/png;base64,{categoryCharts[category]}\" alt=\"{category} Chart\" />");
                 sb.AppendLine("                    </div>");
