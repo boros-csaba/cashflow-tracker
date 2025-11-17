@@ -23,6 +23,9 @@ public class Transaction
     public static string Ruha = "HM, decathlo, ruha";
     public static string Elektronika = "Alza, media markt, elektronika";
     public static string ButorHaztartas = "Bútor, háztartás";
+    public static string KocsiBenzin = "Kocsi, benzin";
+    public static string ObiPraktiker = "Obi, Praktiker";
+    public static string Elofizetesek = "Előfizetések";
     public static string Egyeb = "Egyéb";
 }
 
